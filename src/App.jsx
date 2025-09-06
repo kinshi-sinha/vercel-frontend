@@ -21,14 +21,31 @@ function App() {
 
   async function reviewCode() {
     try {
+      console.log("🔄 Sending request with code:", code)
+
       const response = await axios.post(
-        'https://vercel-backend-sz35.vercel.app/ai/get-review',
+        "https://vercel-backend-sz35.vercel.app/",
         { code }
       )
-      setReview(response.data)   // ✅ fixed (response saved correctly)
+
+      console.log("✅ Raw response:", response)
+      console.log("✅ Response data:", response.data)
+
+      // Check if backend returns { review: "..." } or just plain text
+      if (response.data.review) {
+        setReview(response.data.review)
+      } else {
+        setReview(typeof response.data === "string" ? response.data : JSON.stringify(response.data, null, 2))
+      }
     } catch (error) {
-      console.error("Error fetching review:", error)
-      setReview("⚠️ Failed to fetch review. Please try again.")
+      console.error("❌ Error fetching review:", error)
+
+      if (error.response) {
+        console.error("❌ Backend error response:", error.response.data)
+        setReview(`⚠️ Backend error: ${error.response.data}`)
+      } else {
+        setReview("⚠️ Failed to fetch review. Check console for details.")
+      }
     }
   }
 
