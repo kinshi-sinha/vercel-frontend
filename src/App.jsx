@@ -9,20 +9,27 @@ import axios from 'axios'
 import './App.css'
 
 function App() {
-  const [ count, setCount ] = useState(0)
-  const [ code, setCode ] = useState(` function sum() {
+  const [code, setCode] = useState(`function sum() {
   return 1 + 1
 }`)
 
-  const [ review, setReview ] = useState(``)
+  const [review, setReview] = useState(``)
 
   useEffect(() => {
     prism.highlightAll()
   }, [])
 
   async function reviewCode() {
-    const response = await axios.post('http://localhost:3000/ai/get-review', { code })
-    setReview(response.data)
+    try {
+      const response = await axios.post(
+        'https://vercel-backend-sz35.vercel.app/ai/get-review',
+        { code }
+      )
+      setReview(response.data)   // ✅ fixed (response saved correctly)
+    } catch (error) {
+      console.error("Error fetching review:", error)
+      setReview("⚠️ Failed to fetch review. Please try again.")
+    }
   }
 
   return (
@@ -32,8 +39,10 @@ function App() {
           <div className="code">
             <Editor
               value={code}
-              onValueChange={code => setCode(code)}
-              highlight={code => prism.highlight(code, prism.languages.javascript, "javascript")}
+              onValueChange={(newCode) => setCode(newCode)}
+              highlight={(code) =>
+                prism.highlight(code, prism.languages.javascript, "javascript")
+              }
               padding={10}
               style={{
                 fontFamily: '"Fira code", "Fira Mono", monospace',
@@ -45,22 +54,19 @@ function App() {
               }}
             />
           </div>
-          <div
-            onClick={reviewCode}
-            className="review">Review</div>
+          <div onClick={reviewCode} className="review">
+            Review
+          </div>
         </div>
+
         <div className="right">
-          <Markdown
-
-            rehypePlugins={[ rehypeHighlight ]}
-
-          >{review}</Markdown>
+          <Markdown rehypePlugins={[rehypeHighlight]}>
+            {review}
+          </Markdown>
         </div>
       </main>
     </>
   )
 }
-
-
 
 export default App
